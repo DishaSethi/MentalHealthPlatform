@@ -1,107 +1,3 @@
-// const axios = require("axios");
-
-// const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-
-// // Temporary in-memory message storage
-// const activeMessages = new Map();
-
-// // Function to handle user messages
-// async function handleUserMessage(socket, message) {
-//   console.log("User:", message);
-
-//   // Get AI response
-//   const aiResponse = await getAIResponse(message);
-
-//   // ✅ Debug: Log AI response before sending
-//   console.log("🚀 Sending AI response to client:", aiResponse);
-
-//   socket.emit("aiMessage", aiResponse); 
-
-//   // Store message temporarily
-//   const messageId = Date.now(); // Unique ID
-//   activeMessages.set(messageId, { userMessage: message, aiResponse });
-
-//   // Auto-delete message after 10 minutes
-//   setTimeout(() => {
-//     activeMessages.delete(messageId);
-//     console.log("Message deleted:", messageId);
-//   }, 10 * 60 * 1000); // 10 minutes
-// }
-
-// // Function to call Gemini AI API
-// async function getAIResponse(userMessage) {
-//   try {
-//     // 🛠 Ensure userMessage is a string
-//     const messageText = typeof userMessage === "string" ? userMessage : JSON.stringify(userMessage);
-//     if (messageText.match(/(suicide|self-harm|depressed|hurt myself|ending my life)/i)) {
-//       return {
-//         response: "I'm really sorry you're feeling this way. You're not alone. 💙 Please consider reaching out to a trusted friend, family member, or a professional. If you need immediate help, here are some crisis resources: [Crisis Text Line](https://www.crisistextline.org/) 📞"
-//       };
-//     }
-//     const requestBody = {
-//       contents: [
-//         {
-//           role: "user",
-//           parts: [{ text: messageText }]
-//         }
-//       ]
-//     };
-
-//     console.log("🚀 Sending request to Gemini API:", JSON.stringify(requestBody, null, 2));
-
-//     const response = await axios.post(
-//       `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`,
-//       requestBody,
-//       {
-//         headers: { "Content-Type": "application/json" }
-//       }
-//     );
-
-//     console.log("✅ Gemini API response:", JSON.stringify(response.data, null, 2));
-
-//     if (
-//       response.data &&
-//       response.data.candidates &&
-//       response.data.candidates.length > 0 &&
-//       response.data.candidates[0].content &&
-//       response.data.candidates[0].content.parts &&
-//       response.data.candidates[0].content.parts.length > 0
-//     ) {
-//       return response.data.candidates[0].content.parts[0].text;
-//     } else {
-//       throw new Error("Invalid response structure from Gemini API");
-//     }
-//   } catch (error) {
-//     console.error("❌ Error calling Gemini API:", JSON.stringify(error.response?.data || error, null, 2));
-//     return { response: "I'm here to listen. You're not alone. Let's talk. 💙" };
-//   }
-// }
-
-
-// // Function to generate a summary of conversation
-// async function generateSummary(sessionId) {
-//   try {
-//     // Retrieve all user messages from activeMessages Map
-//     const sessionMessages = [...activeMessages.values()]
-//       .map(msg => `User: ${msg.userMessage}\nAI: ${msg.aiResponse}`)
-//       .join("\n");
-
-//     if (!sessionMessages) return "No conversation history available.";
-
-//     // Call AI to summarize the conversation
-    
-//     const summaryResponse = await getAIResponse(
-//       `Summarize this conversation:\n${sessionMessages}`
-//     );
-
-//     return summaryResponse;
-//   } catch (error) {
-//     console.error("Error generating summary:", error);
-//     return "Sorry, an error occurred while generating the summary.";
-//   }
-// }
-
-// module.exports = { handleUserMessage, getAIResponse, generateSummary };
 
 const axios = require("axios");
 const fs = require("fs");
@@ -143,11 +39,10 @@ async function getAIResponse(userMessage, fileContent = "") {
     const messageText = typeof userMessage === "string" ? userMessage : JSON.stringify(userMessage);
 
     // Suicide prevention check
-    if (messageText.match(/(suicide|self-harm|depressed|hurt myself|ending my life)/i)) {
-      return {
-        response: "I'm really sorry you're feeling this way. You're not alone. 💙 Please consider reaching out to a trusted friend, family member, or a professional. If you need immediate help, here are some crisis resources: [Crisis Text Line](https://www.crisistextline.org/) 📞"
-      };
-    }
+    // if (messageText.match(/(suicide|self-harm|depressed|hurt myself|ending my life)/i)) {
+    //   return  "I'm really sorry you're feeling this way. You're not alone. 💙 Please consider reaching out to a trusted friend, family member, or a professional. If you need immediate help, here are some crisis resources: [Crisis Text Line](https://www.crisistextline.org/) 📞"
+      
+    // }
 
     const systemPrompt = `
     You are an empathetic mental wellness assistant. Your goal is to provide comfort, emotional validation, and gentle guidance to users who may be feeling stressed, anxious, or overwhelmed. 
@@ -213,11 +108,46 @@ async function handleUploadedText(socket, fileContents) {
   //   const fileContent = fs.readFileSync(filePath, "utf8");
 try{
     console.log("📄 Read file content:", fileContents.substring(0, 100) + "..."); // Log first 100 chars
+  // Analyze sentiment & detect topic
+  const sentiment = await analyzeSentiment(fileContents);
+  const topic = await detectTopic(fileContents);
 
-    const aiResponse = await getAIResponse("Summarize this text:", fileContents);
+  // Get AI-generated summary of the report
+  const aiSummary = await getAIResponse(
+    `Summarize this text briefly while maintaining a friendly and supportive tone:\n${fileContents}`
+  );
 
-    console.log("🚀 AI Summary:", aiResponse);
-    socket.emit("aiMessage", aiResponse);
+  // Create a structured, doctor-style follow-up summary
+  const formattedSummary = `
+**🩺 Doctor's Follow-up Check-in**  
+-------------------------------------  
+**Hello! How have you been feeling lately?**  
+
+📌 **Summary of Your Last Report:**  
+${aiSummary}  
+
+📊 **Sentiment Analysis:** ${sentiment}  
+
+🎯 **Key Topics Discussed:** ${topic}  
+
+💙 **Your Overall Mood Based on the Report:**  
+${
+  sentiment.includes("positive")
+    ? "You seem to be in good spirits! 😊"
+    : "There might be some concerns, but I appreciate you sharing. 💙"
+}  
+
+🔎 **How are you feeling now compared to what’s in this report?**  
+- Have your stress levels, mood, or energy changed?  
+- Were you able to apply any of the suggestions from last time?  
+- Is there anything new that’s been on your mind?  
+
+Feel free to share, I’m here to listen. 😊
+    
+  `;
+
+    console.log("🚀 AI Summary:", formattedSummary);
+    socket.emit("aiMessage", formattedSummary);
   } catch (error) {
     console.error("❌ Error reading file:", error);
     socket.emit("error", "Failed to process the uploaded file.");
@@ -233,13 +163,18 @@ async function generateSummary(sessionId) {
     const sessionMessages = [...activeMessages.values()]
       .map(msg => `User: ${msg.userMessage}\nAI: ${msg.aiResponse}`)
       .join("\n");
+      
+      console.log(sessionMessages);
 
     if (!sessionMessages) return "No conversation history available.";
 
     // Call AI to summarize the conversation
-    
+    const sentiment=await analyzeSentiment(sessionMessages);
+    const topic =await detectTopic(sessionMessages);
+
     const summaryResponse = await getAIResponse(
-      `Summarize this conversation:\n${sessionMessages}`
+      `Summarize this conversation:\n${sessionMessages}
+       The sentiment of this conversation is: ${sentiment}. Provide a summary that is supportive,friendly, engaging, casual tone ,add fun touch and matches the mood.Also consider the ${topic}`
     );
     console.log("✅ Summary Response:", summaryResponse);
 
@@ -250,4 +185,81 @@ async function generateSummary(sessionId) {
   }
 }
 
-module.exports = { handleUserMessage, getAIResponse, handleUploadedText, generateSummary };
+async function analyzeSentiment(text){
+  const response= await getAIResponse(`Analyze the sentiment of this conversation: ${text}`);
+  console.log(response+"is the sentiment");
+  return response;
+}
+
+async function detectTopic(text){
+  const response= await getAIResponse(`What is the main topic of this conversation? ${text}`);
+  console.log(response+"is the topic");
+return response;
+}
+
+
+async function generateReport(sessionId) {
+  try {
+    // Retrieve all user messages from activeMessages Map
+    const sessionMessages = [...activeMessages.values()]
+      .map(msg => `User: ${msg.userMessage}\nAI: ${msg.aiResponse}`)
+      .join("\n");
+
+    console.log(sessionMessages);
+
+    if (!sessionMessages) return "No conversation history available.";
+
+    // Analyze sentiment & detect topic
+    const sentiment = await analyzeSentiment(sessionMessages);
+    const topic = await detectTopic(sessionMessages);
+
+    // Get conversation summary
+    const summaryResponse = await getAIResponse(
+      `Summarize this conversation:\n${sessionMessages}
+       The sentiment of this conversation is: ${sentiment}. Provide a summary that is supportive, friendly, engaging, casual in tone, and adds a fun touch. Also, consider the topic: ${topic}`
+    );
+
+    console.log("✅ Summary Response:", summaryResponse);
+
+    // Generate the final structured report
+    const report = `
+      **📝 Conversation Report**
+      ---------------------------------
+      **📌 Summary:**  
+      ${summaryResponse}  
+
+      **📊 Sentiment Analysis:**  
+      ${sentiment}  
+
+      **🎯 Main Topic:**  
+      ${topic}  
+
+      **💡 Actionable Insights:**  
+      - Based on the conversation, consider practicing mindfulness or relaxation techniques.  
+      - If this was a technical discussion, look into learning resources for ${topic}.  
+      - Maintain a positive outlook and engage in activities that boost your mood! 🎉
+    `;
+
+    console.log("✅ Generated Report:", report);
+
+    return report;
+  } catch (error) {
+    console.error("Error generating report:", error);
+    return "Sorry, an error occurred while generating the report.";
+  }
+}
+
+async function getMentalHealthScore(text){
+  try{
+    const response=await axios.post("http://localhost:5001/analyze",{text});
+    return response.data;
+  }catch(error){
+    console.error("Error getting mental health score:", error.message);
+    return { error: "Could not analyze text" };
+  }
+}
+
+// Update module exports to include generateReport
+module.exports = { getMentalHealthScore,handleUserMessage, getAIResponse, handleUploadedText, generateReport,generateSummary };
+
+// module.exports = { handleUserMessage, getAIResponse, handleUploadedText, generateSummary };
