@@ -88,32 +88,32 @@ io.on("connection", (socket) => {
     });
 });
 
-app.use((req, res, next) => {
-    if (req.originalUrl === "/chat") {
-      console.log("Current Session ID:", req.sessionID);
+// app.use((req, res, next) => {
+//     if (req.originalUrl === "/chat") {
+//       console.log("Current Session ID:", req.sessionID);
   
-      if (!req.session.previousSessionId) {
-        req.session.previousSessionId = req.sessionID; // Store initial session ID
-      } else if (req.session.previousSessionId !== req.sessionID) {
-        console.log("Page refreshed! Resetting session...");
+//       if (!req.session.previousSessionId) {
+//         req.session.previousSessionId = req.sessionID; // Store initial session ID
+//       } else if (req.session.previousSessionId !== req.sessionID) {
+//         console.log("Page refreshed! Resetting session...");
         
-        // Destroy the current session and reload
-        req.session.destroy(err => {
-          if (err) {
-            console.error("Error destroying session:", err);
-            return next();
-          }
-          req.session = null;
-          res.clearCookie("connect.sid");
-          res.redirect("/chat"); // Force a reload with a new session
-        });
+//         // Destroy the current session and reload
+//         req.session.destroy(err => {
+//           if (err) {
+//             console.error("Error destroying session:", err);
+//             return next();
+//           }
+//           req.session = null;
+//           res.clearCookie("connect.sid");
+//           res.redirect("/chat"); // Force a reload with a new session
+//         });
   
-        return;
-      }
-    }
+//         return;
+//       }
+//     }
     
-    next();
-  });
+//     next();
+//   });
   
   
 // Use chat routes (For REST API access)
