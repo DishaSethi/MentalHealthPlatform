@@ -29,7 +29,11 @@ router.post("/chat", async (req, res) => {
 
     console.log("Previous Analysis in Chat:", previousAnalysis);
     // Simulating a socket object with an "emit" function to handle the response
-  
+    let modifiedMessage = message;
+    if (previousAnalysis) {
+      modifiedMessage = `User has a mental health score of ${previousAnalysis.score} and sentiment: ${previousAnalysis.sentiment}. Here is their new message: ${message}`;
+    }
+
     const analysisResult = await getMentalHealthScore(modifiedMessage);
 
     console.log("Analysis Result:", analysisResult);
@@ -44,11 +48,7 @@ router.post("/chat", async (req, res) => {
       },
     };
     // Modify message context to include previous analysis
-    let modifiedMessage = message;
-    if (previousAnalysis) {
-      modifiedMessage = `User has a mental health score of ${previousAnalysis.score} and sentiment: ${previousAnalysis.sentiment}. Here is their new message: ${message}`;
-    }
-
+  
 
     // Call handleUserMessage with a fake socket
     await handleUserMessage(fakeSocket, modifiedMessage);
