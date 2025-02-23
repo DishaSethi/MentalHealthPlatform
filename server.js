@@ -17,6 +17,7 @@ const sessionMiddleware = session({
     secret: process.env.SESSION_SECRET || "super_secret_key",
     resave: false,
     saveUninitialized: true,
+    store: null,
     cookie: {
         secure: false, // Change to true in production (HTTPS)
         httpOnly: true,
@@ -102,6 +103,6 @@ app.use((req, res, next) => {
 app.use("/api", chatRoutes);
 const PORT = process.env.PORT || 5000; 
 // Start the server
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
+server.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+});
