@@ -12,7 +12,7 @@ const sharedSession = require("express-socket.io-session");
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: "http://localhost:3000", credentials: true } });
+// const io = new Server(server, { cors: { origin: "http://localhost:3000", credentials: true } });
 
 
 mongoose
@@ -34,9 +34,10 @@ const sessionMiddleware = session({
         autoRemoveInterval: 10, // Cleanup every 10 minutes
     }),
     cookie: {
-        secure: true, // Set to `true` in production with HTTPS
+        secure: NODE_ENV === "production", // Set to `true` in production with HTTPS
         httpOnly: true,
-        maxAge: 60*35* 1000, // 1 day
+        maxAge: 60*35* 1000, // 35mins 
+        sameSite: "none" // Ensures cookies work properly
     },
 });
 
@@ -45,6 +46,14 @@ app.use(cors({ origin: "http://localhost:3000", credentials: true }));
 app.use(express.json());
 app.use(sessionMiddleware);
 
+
+const io = new Server(server, {
+    cors: {
+      origin:"http://localhost:3000",
+      credentials: true,
+    },
+  });
+  
 // Apply session middleware to WebSocket connections
 io.use(sharedSession(sessionMiddleware, { autoSave: true }));
 
