@@ -26,7 +26,7 @@ mongoose
 const sessionMiddleware = session({
     secret: process.env.SESSION_SECRET || "super_secret_key",
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized:false,
     store: MongoStore.create({
         mongoUrl: process.env.MONGO_URI ,
         ttl: 60*30, // Sessions expire in 1 day
@@ -36,7 +36,7 @@ const sessionMiddleware = session({
     cookie: {
         secure: true, // Set to `true` in production with HTTPS
         httpOnly: true,
-        maxAge: 60*30* 1000, // 1 day
+        maxAge: 60*35* 1000, // 1 day
     },
 });
 
