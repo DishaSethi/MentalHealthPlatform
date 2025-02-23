@@ -3,6 +3,8 @@ const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
+const MongoStore = require("connect-mongo");
+const mongoose = require("mongoose");
 const session = require("express-session");
 const chatRoutes = require("./routes/chatbotRoutes");
 const { handleUserMessage } = require("./controllers/chatbotController");
@@ -12,17 +14,30 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "http://localhost:3000", credentials: true } });
 
+
+mongoose
+  .connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("✅ Connected to MongoDB"))
+  .catch((err) => console.error("❌ MongoDB connection error:", err));
 // Express session middleware
 const sessionMiddleware = session({
     secret: process.env.SESSION_SECRET || "super_secret_key",
     resave: false,
     saveUninitialized: true,
-    store: null,
+    store: MongoStore.create({
+        mongoUrl: process.env.MONGO_URI ,
+        ttl: 60*30, // Sessions expire in 1 day
+        autoRemove: "interval",
+        autoRemoveInterval: 10, // Cleanup every 10 minutes
+    }),
     cookie: {
-        secure: false, // Change to true in production (HTTPS)
+        secure: true, // Set to `true` in production with HTTPS
         httpOnly: true,
-        maxAge: null,  // No expiration (Incognito mode)
-    }
+        maxAge: 60*30* 1000, // 1 day
+    },
 });
 
 // Apply session middleware to Express
@@ -37,6 +52,8 @@ io.use(sharedSession(sessionMiddleware, { autoSave: true }));
 const generateSessionId = () => Math.random().toString(36).substring(2, 15);
 
 // Handle WebSocket connections
+
+
 io.on("connection", (socket) => {
     console.log("✅ User connected:", socket.id);
 
