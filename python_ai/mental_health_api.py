@@ -110,5 +110,10 @@ def analyze_text():
     response = calculate_mental_health_score(data["text"])
     return jsonify(response)
 
+# if __name__ == "__main__":
+#     app.run(host="0.0.0.0", port=5001, debug=True)
+
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5001, debug=True)
+    from waitress import serve  # Production-ready server
+    serve(app, host="0.0.0.0", port=5001)

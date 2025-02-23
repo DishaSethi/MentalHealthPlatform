@@ -100,6 +100,8 @@ app.use((req, res, next) => {
   
 // Use chat routes (For REST API access)
 app.use("/api", chatRoutes);
-
+const PORT = process.env.PORT || 5000; 
 // Start the server
-server.listen(5000, () => console.log("🚀 Server running on port 5000"));
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
