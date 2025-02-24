@@ -29,11 +29,7 @@ router.post("/chat", async (req, res) => {
 
     console.log("Previous Analysis in Chat:", previousAnalysis);
     // Simulating a socket object with an "emit" function to handle the response
-    let modifiedMessage = message;
-    if (previousAnalysis) {
-      modifiedMessage = `User has a mental health score of ${previousAnalysis.score} and sentiment: ${previousAnalysis.sentiment}. Here is their new message: ${message}`;
-    }
-
+  
     const analysisResult = await getMentalHealthScore(modifiedMessage);
 
     console.log("Analysis Result:", analysisResult);
@@ -42,13 +38,35 @@ router.post("/chat", async (req, res) => {
         if (!res.headersSent) {
           res.json({ event, aiResponse });
 
-          
-          // console.log("Updated Analysis History:", req.session.analysisHistory);
+          if (!req.session.analysisHistory) {
+            req.session.analysisHistory = [];
+          }
+
+          req.session.analysisHistory.push({
+            score: analysisResult.mental_health_score,
+            sentiment: analysisResult.ai_sentiment,
+            timestamp: new Date(),
+            type: "chat",
+            message,
+          });
+          req.session.save((err) => {
+            if (err) {
+              console.error("Session save error:", err);
+            } else {
+              console.log("Session saved successfully!");
+            }
+          });
+
+          console.log("Updated Analysis History:", req.session.analysisHistory);
         }
       },
     };
     // Modify message context to include previous analysis
-  
+    let modifiedMessage = message;
+    if (previousAnalysis) {
+      modifiedMessage = `User has a mental health score of ${previousAnalysis.score} and sentiment: ${previousAnalysis.sentiment}. Here is their new message: ${message}`;
+    }
+
 
     // Call handleUserMessage with a fake socket
     await handleUserMessage(fakeSocket, modifiedMessage);

@@ -3,8 +3,6 @@ const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
-const MongoStore = require("connect-mongo");
-const mongoose = require("mongoose");
 const session = require("express-session");
 const chatRoutes = require("./routes/chatbotRoutes");
 const { handleUserMessage } = require("./controllers/chatbotController");
@@ -12,48 +10,26 @@ const sharedSession = require("express-socket.io-session");
 
 const app = express();
 const server = http.createServer(app);
-// const io = new Server(server, { cors: { origin: "http://localhost:3000", credentials: true } });
-const NODE_ENV = process.env.NODE_ENV
+const io = new Server(server, { cors: { origin:  "https://plgnmnw5-3000.inc1.devtunnels.ms", credentials: true } });
 
-mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => console.log("✅ Connected to MongoDB"))
-  .catch((err) => console.error("❌ MongoDB connection error:", err));
 // Express session middleware
 const sessionMiddleware = session({
     secret: process.env.SESSION_SECRET || "super_secret_key",
     resave: false,
-    saveUninitialized:false,
-    store: MongoStore.create({
-        mongoUrl: process.env.MONGO_URI ,
-        ttl: 60*30, // Sessions expire in 1 day
-        autoRemove: "interval",
-        autoRemoveInterval: 10, // Cleanup every 10 minutes
-    }),
+    saveUninitialized: true,
+    store: null,
     cookie: {
-        secure: NODE_ENV === "production", // Set to `true` in production with HTTPS
+        secure: false, // Change to true in production (HTTPS)
         httpOnly: true,
-        maxAge: 60*35* 1000, // 35mins 
-        sameSite: "none" // Ensures cookies work properly
-    },
+        maxAge: null,  // No expiration (Incognito mode)
+    }
 });
 
 // Apply session middleware to Express
-app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+app.use(cors({ origin: "https://plgnmnw5-3000.inc1.devtunnels.ms", credentials: true }));
 app.use(express.json());
 app.use(sessionMiddleware);
 
-
-const io = new Server(server, {
-    cors: {
-      origin:"http://localhost:3000",
-      credentials: true,
-    },
-  });
-  
 // Apply session middleware to WebSocket connections
 io.use(sharedSession(sessionMiddleware, { autoSave: true }));
 
@@ -61,8 +37,6 @@ io.use(sharedSession(sessionMiddleware, { autoSave: true }));
 const generateSessionId = () => Math.random().toString(36).substring(2, 15);
 
 // Handle WebSocket connections
-
-
 io.on("connection", (socket) => {
     console.log("✅ User connected:", socket.id);
 
@@ -97,32 +71,32 @@ io.on("connection", (socket) => {
     });
 });
 
-// app.use((req, res, next) => {
-//     if (req.originalUrl === "/chat") {
-//       console.log("Current Session ID:", req.sessionID);
+app.use((req, res, next) => {
+    if (req.originalUrl === "/chat") {
+      console.log("Current Session ID:", req.sessionID);
   
-//       if (!req.session.previousSessionId) {
-//         req.session.previousSessionId = req.sessionID; // Store initial session ID
-//       } else if (req.session.previousSessionId !== req.sessionID) {
-//         console.log("Page refreshed! Resetting session...");
+      if (!req.session.previousSessionId) {
+        req.session.previousSessionId = req.sessionID; // Store initial session ID
+      } else if (req.session.previousSessionId !== req.sessionID) {
+        console.log("Page refreshed! Resetting session...");
         
-//         // Destroy the current session and reload
-//         req.session.destroy(err => {
-//           if (err) {
-//             console.error("Error destroying session:", err);
-//             return next();
-//           }
-//           req.session = null;
-//           res.clearCookie("connect.sid");
-//           res.redirect("/chat"); // Force a reload with a new session
-//         });
+        // Destroy the current session and reload
+        req.session.destroy(err => {
+          if (err) {
+            console.error("Error destroying session:", err);
+            return next();
+          }
+          req.session = null;
+          res.clearCookie("connect.sid");
+          res.redirect("/chat"); // Force a reload with a new session
+        });
   
-//         return;
-//       }
-//     }
+        return;
+      }
+    }
     
-//     next();
-//   });
+    next();
+  });
   
   
 // Use chat routes (For REST API access)
