@@ -90,112 +90,11 @@ router.get("/report/:sessionId", async (req, res) => {
 });
 
 
-// router.post("/uploadReport", upload.single("file"), async (req, res) => {
-//   if (!req.file) {
-//       return res.status(400).json({ error: "No file uploaded" });
-//   }
-
-//   try {
-//     // const fakeSocket = {
-//     //   emit: (event, data) => res.json({ event, aiResponse: data }), // Send response as API JSON
-//     // };
-//       const filePath = path.join(__dirname, "..", req.file.path);
-//       const fileContents = fs.readFileSync(filePath, "utf-8");
-
-//       console.log("Received Report:", fileContents);
-
-//       const analysisResult = await getMentalHealthScore(fileContents);
 
 
 
-//     // Ensuring response is sent only once
-//     let responseSent = false;
 
-//     const fakeSocket = {
-//       emit: (event, data) => {
-//         if (!res.headersSent) {  
-//           return res.json({ event, aiResponse: data });
-//         }
-//       },
-//     };
-    
 
-//       // Generate a therapy response based on the report
-//       const aiResponse = await handleUploadedText(fakeSocket,fileContents);
-
-//       // Send AI-generated response back
-//       // res.json({ message: "Report processed successfully", response: aiResponse });
-//       // res.json({
-//       //   message: "Report processed successfully",
-//       //   analysis: analysisResult,
-//       // });
-//       // Remove file to free up space
-//       req.session.mentalHealthAnalysis = {
-//         score: analysisResult.mental_health_score,
-//         sentiment: analysisResult.ai_sentiment,
-//         timestamp: new Date(),
-//       };
-
-//       console.log("Stored in session:", req.session.mentalHealthAnalysis);
-
-//  // ✅ Store history of reports in session
-//  if (!req.session.analysisHistory) {
-//   req.session.analysisHistory = []; // Initialize if not present
-// }
-
-// req.session.analysisHistory.push({
-//   score: analysisResult.mental_health_score,
-//   sentiment: analysisResult.ai_sentiment,
-//   timestamp: new Date(),
-// });
-// req.session.save((err) => {
-//   if (err) {
-//     console.error("Session save error:", err);
-//   } else {
-//     console.log("Session saved successfully!");
-//   }
-// });
-
-// console.log("Stored Analysis History:", req.session.analysisHistory); 
-
-//       fs.unlinkSync(filePath);
-//   } catch (error) {
-//       console.error("Error processing file:", error);
-//       res.status(500).json({ error: "Error processing file" });
-//   }
-// });
-
-// router.post("/uploadReports", upload.single("file"), async (req, res) => {
-//   if (!req.file) {
-//     return res.status(400).json({ error: "No file uploaded" });
-//   }
-
-//   try {
-//     const filePath = path.join(__dirname, "..", req.file.path);
-//     const fileContents = fs.readFileSync(filePath, "utf-8");
-
-//     console.log("Received Report:", fileContents);
-
-//     // Get Mental Health Score
-//     const analysisResult = await getMentalHealthScore(fileContents);
-
-//     // Generate AI Response
-//     // const aiResponse = await handleUploadedText(fileContents); // No need for fakeSocket
-
-//     // Send final response only once
-//     res.json({
-//       message: "Report processed successfully",
-//       analysis: analysisResult,
-     
-//     });
-
-//     // Remove file to free up space
-//     fs.unlinkSync(filePath);
-//   } catch (error) {
-//     console.error("Error processing file:", error);
-//     res.status(500).json({ error: "Error processing file" });
-//   }
-// });
 
 
 router.post("/uploadReport", upload.single("file"), async (req, res) => {
@@ -252,13 +151,6 @@ router.post("/uploadReport", upload.single("file"), async (req, res) => {
 
     console.log("Stored Analysis History:", req.session.analysisHistory);
 
-    // Send final response
-    // console.log("Stored Analysis History:", req.session.analysisHistory); 
-    // res.json({
-    //   message: "Report processed successfully",
-    //   analysis: analysisResult,
-    //   reportStoredInSession: true,
-    // });
 
   } catch (error) {
     console.error("Error processing file:", error);

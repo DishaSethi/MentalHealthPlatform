@@ -70,11 +70,12 @@ async function getAIResponse(userMessage, fileContent = "") {
 
     console.log("🚀 Sending request to Gemini API:", JSON.stringify(requestBody, null, 2));
 
-    const response = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`,
-      requestBody,
-      { headers: { "Content-Type": "application/json" } }
-    );
+   const response = await axios.post(
+  `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=${GEMINI_API_KEY}`,
+  requestBody,
+  { headers: { "Content-Type": "application/json" } }
+);
+
 
     console.log("✅ Gemini API response:", JSON.stringify(response.data, null, 2));
 
@@ -251,7 +252,7 @@ async function generateReport(sessionId) {
 
 async function getMentalHealthScore(text){
   try{
-    const response=await axios.post("https://plgnmnw5-5001.inc1.devtunnels.ms/analyze",{text});
+    const response=await axios.post("http://localhost:5001/analyze",{text});
     return response.data;
   }catch(error){
     console.error("Error getting mental health score:", error.message);
