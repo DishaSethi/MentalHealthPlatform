@@ -10,7 +10,7 @@ const sharedSession = require("express-socket.io-session");
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin:  " http://localhost:3000", credentials: true } });
+const io = new Server(server, { cors: { origin:  " https://mentalhealthfrontend.onrender.com", credentials: true } });
 
 // Express session middleware
 const sessionMiddleware = session({
@@ -26,7 +26,7 @@ const sessionMiddleware = session({
 });
 
 // Apply session middleware to Express
-app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+app.use(cors({ origin: "https://mentalhealthfrontend.onrender.com", credentials: true }));
 app.use(express.json());
 app.use(sessionMiddleware);
 
