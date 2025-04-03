@@ -4,6 +4,7 @@ from flask import Flask, request, jsonify
 from transformers import pipeline
 import nltk
 from nltk.sentiment import SentimentIntensityAnalyzer
+from flask_cors import CORS
 
 # Download VADER lexicon
 nltk.download("vader_lexicon")
