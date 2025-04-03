@@ -10,7 +10,7 @@ nltk.download("vader_lexicon")
 
 # Initialize Flask app
 app = Flask(__name__)
-
+CORS(app, origins=["https://mentalhealthfrontend.onrender.com"], supports_credentials=True)
 # Load AI sentiment analysis model
 classifier = pipeline("sentiment-analysis", model="siebert/sentiment-roberta-large-english")
 
@@ -67,7 +67,9 @@ def analyze_text():
     return jsonify(response)
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5001)
+    port = int(os.environ.get("PORT", 10000))  # Use Render's assigned port
+    from waitress import serve  # Production-ready server
+    serve(app, host="0.0.0.0", port=port)
 # import os
 
 # port = int(os.environ.get("PORT", 5001))
