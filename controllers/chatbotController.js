@@ -252,7 +252,10 @@ async function generateReport(sessionId) {
 
 async function getMentalHealthScore(text){
   try{
+    // const response=await axios.post("http://localhost:5001/analyze/analyze",{text});
     const response=await axios.post("https://mentalhealthplatform-python.onrender.com/analyze",{text});
+        
+    console.log("🧠 Python API Response:", response.data);
     return response.data;
   }catch(error){
     console.error("Error getting mental health score:", error.message);
