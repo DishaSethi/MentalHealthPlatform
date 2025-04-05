@@ -11,7 +11,7 @@ nltk.download("vader_lexicon")
 
 # Initialize Flask app
 app = Flask(__name__)
-CORS(app, origins=["https://mentalhealthfrontend.onrender.com"], supports_credentials=True)
+CORS(app, origins=["https://mentalhealthplatform.onrender.com"], supports_credentials=True)
 # Load AI sentiment analysis model
 classifier = pipeline("sentiment-analysis", model="siebert/sentiment-roberta-large-english")
 
